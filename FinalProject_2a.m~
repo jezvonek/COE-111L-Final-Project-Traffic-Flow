@@ -50,24 +50,32 @@ while (t < tfinal)
     %Pbc_avg = 0.5*(Pbc(1:Nx+1)+Pbc(2:Nx+2));
     n_Pbc = numel(Pbc);             % Get number of elements.
     
-    Flux_L_Bound = zeros(1,n_Pbc);
+    Flux_R_Bound = zeros(1,n_Pbc);
     for i = 1:1:n_Pbc
-        Flux_L_Bound(i) = (1-Pbc(i)/p_max)*v_max*Pbc(i);
+        Flux_R_Bound(i) = (1-Pbc(i)/p_max)*v_max*Pbc(i);
     end % for i = 1:1:n_Pbc
     
     % Find net flux in each cell
     Net_Flux = zeros(1,Nx+2);
-    for i = 1:1:(Nx+1)
-        Net_Flux(i) = Flux_L_Bound(i) - Flux_L_Bound(i+1);
-        % for the ith cell, the density flows from right to left. Thus,
-        % density leaves through the left boundary and enters through the
-        % right boundary. However, the right boundary of the ith cell is
-        % the left boundary of the i+1th cell. Thus, to get the right flux
-        %, we simply find the left flux in the i+1th cell.
+    for i = 2:1:(Nx+2)
+        Net_Flux(i) = Flux_R_Bound(i-1) - Flux_R_Bound(i);
+        % for the ith cell, cars come in from the left and out through the
+        % right. However, the left boundary of the ith cell is the right
+        % boundary of the i+1th cell. Thus, to get the left flux, we simply
+        % find the right boundary flux for the i-1th cell (which is stored
+        % in the i-1th element of Flux_R_Bound). 
+        % 
+        % Further note that there is no right boundary for the 1st cell.
+        % This is because we never found the flux for the left most cell of
+        % Pbc. This boundary corresdonds to the left boundary of the Left
+        % BC cell. We don't care about the flux in this cell, since P in
+        % the boundary cells is constant. Thus, the index in this for loop
+        % only goes from 2 to Nx+2, not 1 to Nx+2 (there are Nx+2 cells in
+        % Pbc, the final cell corresponds to the right BC cell). 
     end % for i = 1:1:(n_Pbc-1)
     
     % Update P for all interior elements of Pbc
-    for i = 2:1:(Nx+1)
+    for i = 2:1:(Nx+2)
         P(i-1) = P(i-1) + Net_Flux(i)*(dt/dx);
     end % for i = 2:1:(Nx+2)
 
@@ -84,18 +92,17 @@ while (t < tfinal)
     t = t + dt;
 
     % Plot current solution
-    figure(1);
-    clf;    
-    hold on;
-    grid on;
-
+    figure(1)
+    clf
     plot(x,[P, P(Nx)],'go');
+    hold on;
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
-        axis([xL, xR, 0, 0.3]);
-        legend('FVM','Exact');
-        title(['t=',num2str(t)]);
-        ylabel('density (1/m)');
-        xlabel('distance (m)');
+    axis([xL, xR, 0, 0.3]);
+    legend('FVM','Exact');
+    title(['t=',num2str(t)]);
+    ylabel('density (1/m)');
+    xlabel('distance (m)');
+    grid on;
     drawnow;
     hold off;
 end % while(t < tfinal)

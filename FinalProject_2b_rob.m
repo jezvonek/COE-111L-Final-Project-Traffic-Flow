@@ -26,12 +26,8 @@ dx = x(2) - x(1);
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 
 % Set final time
-<<<<<<< HEAD
-tfinal = 20;
-=======
 tfinal = 35;
 
->>>>>>> a2c675fab2b1004ffd6ee63a426cae4e51517f0b
 % Set timestep
 CFL = 0.5;
 dt = CFL*dx/v_max;
@@ -55,17 +51,9 @@ while (t < tfinal)
     n_Pbc = numel(Pbc);             % Get number of elements.
     
     Flux_L_Bound = zeros(1,n_Pbc);
-    for i=2:Nx+1
-        s1 = (1-2*Pbc(i)/p_max)*v_max;
-        s2 = (1-2*Pbc(i+1)/p_max)*v_max;
-        if s1>=s2
-            s_max=s1;
-        else
-            s_max=s2;
-        end
-        
-        Flux_L_Bound(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)*(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
-    end
+    for i = 1:1:n_Pbc
+        Flux_L_Bound(i) = (1-Pbc(i)/p_max)*v_max*Pbc(i);
+    end % for i = 1:1:n_Pbc
     
     % Find net flux in each cell
     Net_Flux = zeros(1,Nx+2);
@@ -101,24 +89,7 @@ while (t < tfinal)
     hold on;
     grid on;
 
-<<<<<<< HEAD
-% Plot current solution
-figure(1)
-clf
-hold on
-plot(x,[P, P(Nx)],'go');
-plot(x,[P_Exact, P_Exact(Nx)],'k-');
-axis([xL, xR, 0, 0.3]);
-legend('FVM','Exact');
-title(['t=',num2str(t)]);
-ylabel('density (1/m)');
-xlabel('distance (m)');
-grid on;
-drawnow;
-hold off;
-end
-=======
-    plot(x,[P, P(Nx)],'mo');
+    plot(x,[P, P(Nx)],'go');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
         axis([xL, xR, 0, 0.3]);
         legend('FVM','Exact');
@@ -128,4 +99,3 @@ end
     drawnow;
     hold off;
 end % while(t < tfinal)
->>>>>>> a2c675fab2b1004ffd6ee63a426cae4e51517f0b

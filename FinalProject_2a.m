@@ -26,8 +26,12 @@ dx = x(2) - x(1);
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 
 % Set final time
+<<<<<<< HEAD
+tfinal = 20;
+=======
 tfinal = 35;
 
+>>>>>>> a2c675fab2b1004ffd6ee63a426cae4e51517f0b
 % Set timestep
 CFL = 0.5;
 dt = CFL*dx/v_max;
@@ -97,6 +101,23 @@ while (t < tfinal)
     hold on;        % hold on
     grid on;        % grid on
 
+<<<<<<< HEAD
+% Plot current solution
+figure(1)
+clf
+hold on
+plot(x,[P, P(Nx)],'go');
+plot(x,[P_Exact, P_Exact(Nx)],'k-');
+axis([xL, xR, 0, 0.3]);
+legend('FVM','Exact');
+title(['t=',num2str(t)]);
+ylabel('density (1/m)');
+xlabel('distance (m)');
+grid on;
+drawnow;
+hold off;
+end
+=======
     plot(x,[P, P(Nx)],'mo');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
         axis([xL, xR, 0, 0.3]);
@@ -107,3 +128,4 @@ while (t < tfinal)
     drawnow;
     hold off;
 end % while(t < tfinal)
+>>>>>>> a2c675fab2b1004ffd6ee63a426cae4e51517f0b

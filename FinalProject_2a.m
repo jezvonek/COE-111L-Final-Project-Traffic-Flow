@@ -51,9 +51,17 @@ while (t < tfinal)
     n_Pbc = numel(Pbc);             % Get number of elements.
     
     Flux_L_Bound = zeros(1,n_Pbc);
-    for i = 1:1:n_Pbc
-        Flux_L_Bound(i) = (1-Pbc(i)/p_max)*v_max*Pbc(i);
-    end % for i = 1:1:n_Pbc
+    for i=2:Nx+1
+        s1 = (1-2*Pbc(i)/p_max)*v_max;
+        s2 = (1-2*Pbc(i+1)/p_max)*v_max;
+        if s1>=s2
+            s_max=s1;
+        else
+            s_max=s2;
+        end
+        
+        Flux_L_Bound(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)*(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
+    end
     
     % Find net flux in each cell
     Net_Flux = zeros(1,Nx+2);
@@ -89,7 +97,7 @@ while (t < tfinal)
     hold on;
     grid on;
 
-    plot(x,[P, P(Nx)],'go');
+    plot(x,[P, P(Nx)],'mo');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
         axis([xL, xR, 0, 0.3]);
         legend('FVM','Exact');

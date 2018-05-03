@@ -94,8 +94,8 @@ while (t < tfinal)
     % Plot current solution
     figure(1);
     clf;    
-    hold on;
-    grid on;
+    hold on;        % hold on
+    grid on;        % grid on
 
     plot(x,[P, P(Nx)],'mo');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');

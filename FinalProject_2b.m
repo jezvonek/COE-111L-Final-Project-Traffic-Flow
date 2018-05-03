@@ -15,6 +15,8 @@ x = linspace(xL,xR,Nx+1);
 % Calculate midpoint values of x in each control volume
 xmid = 0.5*(x(1:Nx) + x(2:Nx+1));
 
+
+
 % Calculate cell size in control volumes (assumed equal)
 dx = x(2) - x(1);
 % Set shock velocity

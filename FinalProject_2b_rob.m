@@ -45,48 +45,37 @@ P_Exact=zeros(size(P));         % Exact density in each cell (at midpoints)
 % Loop until t > tfinal
 while (t < tfinal)
     Pbc = [p_L, P, p_R]; % This enforces the bc
+    P_j_half = zeros(1,Nx+2);
     
-    % Calculate the flux at each interface
-    %Pbc_avg = 0.5*(Pbc(1:Nx+1)+Pbc(2:Nx+2));
-    n_Pbc = numel(Pbc);             % Get number of elements.
-    
-    Flux_L_Bound = zeros(1,n_Pbc);
-    for i=2:Nx+1
-        s1 = (1-2*Pbc(i)/p_max)*v_max;
-        s2 = (1-2*Pbc(i+1)/p_max)*v_max;
-        if s1>=s2
-            s_max=s1;
-        else
-            s_max=s2;
+    % Set p_j+(1/2) for each boundary
+    for i = 1:1:(Nx+1)
+        if (Pbc(i) >= Pbc(i+1) && Pbc(i) < p_max/2)
+            P_j_half(i) = Pbc(i);
+            
+        elseif(Pbc(i) > p_max/2 && Pbc(i+1) <= p_max/2)
+            P_j_half(i) = p_max/2;
+            
+        elseif(Pbc(i) >= Pbc(i+1) && Pbc(i+1) >= p_max/2)
+            P_j_half(i) = Pbc(i+1);
+            
+        elseif(Pbc(i) < Pbc(i+1) && Pbc(i) + Pbc(i+1) <= p_max)
+            P_j_half(i) = Pbc(i);
+            
+        elseif(Pbc(i) < Pbc(i+1) && Pbc(i) + Pbc(i+1) > p_max)
+            P_j_half(i) = Pbc(i+1);
         end
-        
-        Flux_L_Bound(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)*(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
-        % Cars flow from left to right. The flux through a given boundary
-        % depends on the value of the density in the cell to the right of
-        % that boundary. Thus, when we calculate the flux term, Pv, for a
-        % given cell, we are really finding the flux of cars into that cell
-        % from the left. Therefore, the value of our flux vector for the
-        % ith cell is the flux flowing into that cell from the left
-        % boundary. 
-    end
+    end % for i = 1:1:(Nx+1)
     
-    % Find net flux in each cell
-    Net_Flux = zeros(1,Nx+2);
-    for i = 2:1:(Nx+1)
-        Net_Flux(i) = Flux_L_Bound(i) - Flux_L_Bound(i+1);
-        % Cars flow from left to right. The flux of cars through a given
-        % boundary depends on the value of the density in the cell infront
-        % of us. Cars leaves through the left and enter through the right.
-        % The flux flowing out is simply the flux flound through the left
-        % bounday of the i+1th cell, while the flux flowing in is the flux
-        % through the left boundary of the ith cell. 
-    end % for i = 1:1:(n_Pbc-1)
+    % Use P_j+(1/2) to caculate q_j+(1/2) at each boundary 
+    Q_j_half = zeros(1,Nx+1);
+    for i = 1:1:(Nx+1)
+        Q_j_half(i) = (1-P_j_half(i)/p_max)*v_max*P_j_half(i);
+    end % for i = 1:1:(Nx+1)
     
     % Update P for all interior elements of Pbc
     for i = 2:1:(Nx+1)
-        P(i-1) = P(i-1) + Net_Flux(i)*(dt/dx);
+        P(i-1) = P(i-1) + (dt/dx)*(Q_j_half(i-1) - Q_j_half(i));
     end % for i = 2:1:(Nx+2)
-
     %calculate exact solution at this time step
         for i=1:length(P_Exact)
             if ((dx*(i-1/2))-2000)/t < a

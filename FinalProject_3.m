@@ -3,9 +3,10 @@ clear all;
 
 %set constants
 v_max = 33;     % m/s
-p_max = 0.25;   % 1/m
-p_L = 0.15;     % Left boundary density
-p_R = 0.25;     % Right boundary density
+p_max = 0.25;   % car/m
+flux_l = 1.2;   % car/s
+p_L = p_max/2 - .5*(p_max^2-4*p_max*flux_l/v_max)^(1/2);     % Left boundary density
+p_R = 0.02;     % Right boundary density
 
 % Set-up grid
 xL = 0;
@@ -36,7 +37,7 @@ t=0;
 % Set initial condition to p0 = 0.15 (1/m)
 P = zeros(1,Nx);       % Density in each cell
 for i = 1:1:Nx
-    P(i) = .15;
+    P(i) = .02;
 end % for i = 1:1:numel(xmid)
 
 % Initialize exact solution array
@@ -97,7 +98,7 @@ while (t < tfinal)
 
     plot(x,[P, P(Nx)],'mo');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
-        axis([xL, xR, 0, 0.3]);
+        axis([xL, xR, 0, 0.06]);
         legend('FVM','Exact');
         title(['t=',num2str(t)]);
         ylabel('density (1/m)');

@@ -27,14 +27,14 @@ dx = x(2) - x(1);
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 
 % Set final time
-tfinal = 35;
+tfinal = 20;
 
 % Set timestep
 CFL = 0.5;
 dt = CFL*dx/v_max;
 t=0;
 
-% Set initial condition to p0 = 0.15 (1/m)
+% Set initial condition to p0 = 0.02 (1/m)
 P = zeros(1,Nx);       % Density in each cell
 for i = 1:1:Nx
     P(i) = .02;
@@ -80,11 +80,13 @@ while (t < tfinal)
 
     %calculate exact solution at this time step
         for i=1:length(P_Exact)
-            if ((dx*(i-1/2))-2000)/t < a
-                P_Exact(i) = p_L;
-            else
-                P_Exact(i) = p_R;
-            end
+          if (i-1/2)*dx/t <= (1-2*p_L/p_max)*v_max
+              P_Exact(i) = p_L;
+          elseif (1-2*p_L/p_max)*v_max < (i-1/2)*dx/t && (i-1/2)*dx/t < (1-2*p_R/p_max)*v_max
+              P_Exact(i) = 0.5*p_max*(1-(i-1/2)*dx/(v_max*t));
+          else
+              P_Exact(i) = p_R;
+          end
         end
 
     % Increment time

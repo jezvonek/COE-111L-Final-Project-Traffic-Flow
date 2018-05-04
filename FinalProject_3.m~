@@ -3,9 +3,10 @@ clear all;
 
 %set constants
 v_max = 33;     % m/s
-p_max = 0.25;   % 1/m
-p_L = 0.15;     % Left boundary density
-p_R = 0.25;     % Right boundary density
+p_max = 0.25;   % car/m
+flux_l = 1.2;   % car/s
+p_L = p_max/2 - .5*(p_max^2-4*p_max*flux_l/v_max)^(1/2);     % Left boundary density
+p_R = 0.02;     % Right boundary density
 
 % Set-up grid
 xL = 0;
@@ -34,9 +35,9 @@ dt = CFL*dx/v_max;
 t=0;
 
 % Set initial condition to p0 = 0.15 (1/m)
-P = zeros(1,numel(xmid));       % Density in each cell
-for i = 1:1:numel(xmid)
-    P(i) = .15;
+P = zeros(1,Nx);       % Density in each cell
+for i = 1:1:Nx
+    P(i) = .02;
 end % for i = 1:1:numel(xmid)
 
 % Initialize exact solution array
@@ -67,33 +68,20 @@ while (t < tfinal)
     end % for i = 1:1:(Nx+1)
     
     % Use P_j+(1/2) to caculate q_j+(1/2) at each boundary 
-    Q_j_half = zeros(1,Nx+2);
+    Q_j_half = zeros(1,Nx+1);
     for i = 1:1:(Nx+1)
-        s1 = (1-2*Pbc(i)/p_max)*v_max;
-        s2 = (1-2*Pbc(i+1)/p_max)*v_max;
-        if s1>=s2
-            s_max=s1;
-        else
-            s_max=s2;
-        end
-        
-        % Note: Pbc(i) = P(i-1) for i in [2,Nx+1]
-        Q_j_half(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)...
-            *(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
+        Q_j_half(i) = (1-P_j_half(i)/p_max)*v_max*P_j_half(i);
     end % for i = 1:1:(Nx+1)
     
     % Update P for all interior elements of Pbc
     for i = 2:1:(Nx+1)
-        P(i-1) = P(i-1) + (dt/dx)*(Q_j_half(i) - Q_j_half(i+1));
+        P(i-1) = P(i-1) + (dt/dx)*(Q_j_half(i-1) - Q_j_half(i));
     end % for i = 2:1:(Nx+2)
-    
+
     %calculate exact solution at this time step
         for i=1:length(P_Exact)
-            if ((dx*(i-1/2))-2000)/t < a
-                P_Exact(i) = p_L;
-            else
-                P_Exact(i) = p_R;
-            end
+          lambda = (1-2*P(i)/p_max)*v_max;
+          if ((i-1/2)*dx/t <
         end
 
     % Increment time
@@ -102,12 +90,12 @@ while (t < tfinal)
     % Plot current solution
     figure(1);
     clf;    
-    hold on;
-    grid on;
+    hold on;        % hold on
+    grid on;        % grid on
 
-    plot(x,[P, P(Nx)],'go');
+    plot(x,[P, P(Nx)],'mo');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
-        axis([xL, xR, 0, 0.3]);
+        axis([xL, xR, 0, 0.06]);
         legend('FVM','Exact');
         title(['t=',num2str(t)]);
         ylabel('density (1/m)');

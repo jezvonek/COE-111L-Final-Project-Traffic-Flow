@@ -51,19 +51,35 @@ while (t < tfinal)
     n_Pbc = numel(Pbc);             % Get number of elements.
     
     Flux_L_Bound = zeros(1,n_Pbc);
-    for i = 1:1:n_Pbc
-        Flux_L_Bound(i) = (1-Pbc(i)/p_max)*v_max*Pbc(i);
-    end % for i = 1:1:n_Pbc
+    for i=2:Nx+1
+        s1 = (1-2*Pbc(i)/p_max)*v_max;
+        s2 = (1-2*Pbc(i+1)/p_max)*v_max;
+        if s1>=s2
+            s_max=s1;
+        else
+            s_max=s2;
+        end
+        
+        Flux_L_Bound(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)*(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
+        % Cars flow from left to right. The flux through a given boundary
+        % depends on the value of the density in the cell to the right of
+        % that boundary. Thus, when we calculate the flux term, Pv, for a
+        % given cell, we are really finding the flux of cars into that cell
+        % from the left. Therefore, the value of our flux vector for the
+        % ith cell is the flux flowing into that cell from the left
+        % boundary. 
+    end
     
     % Find net flux in each cell
     Net_Flux = zeros(1,Nx+2);
-    for i = 1:1:(Nx+1)
+    for i = 2:1:(Nx+1)
         Net_Flux(i) = Flux_L_Bound(i) - Flux_L_Bound(i+1);
-        % for the ith cell, the density flows from right to left. Thus,
-        % density leaves through the left boundary and enters through the
-        % right boundary. However, the right boundary of the ith cell is
-        % the left boundary of the i+1th cell. Thus, to get the right flux
-        %, we simply find the left flux in the i+1th cell.
+        % Cars flow from left to right. The flux of cars through a given
+        % boundary depends on the value of the density in the cell infront
+        % of us. Cars leaves through the left and enter through the right.
+        % The flux flowing out is simply the flux flound through the left
+        % bounday of the i+1th cell, while the flux flowing in is the flux
+        % through the left boundary of the ith cell. 
     end % for i = 1:1:(n_Pbc-1)
     
     % Update P for all interior elements of Pbc

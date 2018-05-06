@@ -26,7 +26,7 @@ dx = x(2) - x(1);
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 
 % Set final time
-tfinal = 20;
+tfinal = 35;
 
 % Set timestep
 CFL = 0.5;
@@ -45,30 +45,10 @@ P_Exact=zeros(size(P));         % Exact density in each cell (at midpoints)
 % Loop until t > tfinal
 while (t < tfinal)
     Pbc = [p_L, P, p_R]; % This enforces the bc
-    P_j_half = zeros(1,Nx+2);
-    
-    % Set p_j+(1/2) for each boundary
-    for i = 1:1:(Nx+1)
-        if (Pbc(i) >= Pbc(i+1) && Pbc(i) < p_max/2)
-            P_j_half(i) = Pbc(i);
-            
-        elseif(Pbc(i) > p_max/2 && Pbc(i+1) <= p_max/2)
-            P_j_half(i) = p_max/2;
-            
-        elseif(Pbc(i) >= Pbc(i+1) && Pbc(i+1) >= p_max/2)
-            P_j_half(i) = Pbc(i+1);
-            
-        elseif(Pbc(i) < Pbc(i+1) && Pbc(i) + Pbc(i+1) <= p_max)
-            P_j_half(i) = Pbc(i);
-            
-        elseif(Pbc(i) < Pbc(i+1) && Pbc(i) + Pbc(i+1) > p_max)
-            P_j_half(i) = Pbc(i+1);
-        end
-    end % for i = 1:1:(Nx+1)
     
     % Use P_j+(1/2) to caculate q_j+(1/2) at each boundary 
     Q_j_half = zeros(1,Nx+2);
-    for i = 1:1:(Nx+1)
+    for i = 2:1:(Nx+1)
         s1 = (1-2*Pbc(i)/p_max)*v_max;
         s2 = (1-2*Pbc(i+1)/p_max)*v_max;
         if s1>=s2
@@ -78,13 +58,13 @@ while (t < tfinal)
         end
         
         % Note: Pbc(i) = P(i-1) for i in [2,Nx+1]
-        Q_j_half(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)...
+        Q_j_half(i-1) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)...
             *(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
     end % for i = 1:1:(Nx+1)
     
     % Update P for all interior elements of Pbc
-    for i = 2:1:(Nx+1)
-        P(i-1) = P(i-1) + (dt/dx)*(Q_j_half(i) - Q_j_half(i+1));
+    for i = 1:1:Nx
+        P(i) = P(i) + (dt/dx)*(Q_j_half(i) - Q_j_half(i+1));
     end % for i = 2:1:(Nx+2)
     
     %calculate exact solution at this time step

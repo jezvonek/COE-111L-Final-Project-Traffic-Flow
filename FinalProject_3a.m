@@ -27,7 +27,7 @@ dx = x(2) - x(1);
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 
 % Set final time
-tfinal = 20;
+tfinal = 35;
 
 % Set timestep
 CFL = 0.5;
@@ -98,7 +98,7 @@ while (t < tfinal)
     hold on;        % hold on
     grid on;        % grid on
 
-    plot(x,[P, P(Nx)],'mo');
+    plot(x,[P, P(Nx)],'ro');
     plot(x,[P_Exact, P_Exact(Nx)],'k-');
         axis([xL, xR, 0, 0.06]);
         legend('FVM','Exact');

@@ -22,7 +22,7 @@ dx = x(2) - x(1);
 % Set shock velocity
 a = ((1-p_L/p_max)*v_max*p_L - (1-p_R/p_max)*v_max*p_R)/(p_L-p_R);
 % Set final time
-tfinal = 20;
+tfinal = 35;
 % Set timestep
 CFL = 0.5;
 dt = CFL*dx/v_max;
@@ -39,8 +39,9 @@ P_Exact=zeros(size(P));
 Q=zeros(1,length(P)+2);
 % Loop until t > tfinal
 while (t < tfinal)
-Pbc = [p_L, P, p_R]; % This enforces the bc
-% Calculate the flux at each interface
+    Pbc = [p_L, P, p_R]; % This enforces the bc
+    
+    % Calculate the flux at each interface
     for i=1:Nx+1
         s1 = (1-2*Pbc(i)/p_max)*v_max;
         s2 = (1-2*Pbc(i+1)/p_max)*v_max;
@@ -49,41 +50,42 @@ Pbc = [p_L, P, p_R]; % This enforces the bc
         else
             s_max=s2;
         end
-        
+
         Q(i) = 0.5*(Pbc(i)*(1-Pbc(i)/p_max)*v_max+Pbc(i+1)*(1-Pbc(i+1)/p_max)*v_max)+ (s_max/2)*(Pbc(i)-Pbc(i+1));
     end
-    
-% Calculate rhs in each cell
-R = Q(2:Nx+1) - Q(1:Nx);
-% Forward Euler step
-P = P - (dt/dx)*R;
 
-%  %calculate exact solution at this time step
-        for i=1:length(P_Exact)
-          if (i-1/2)*dx/t <= (1-2*p_L/p_max)*v_max
-              P_Exact(i) = p_L;
-          elseif (1-2*p_L/p_max)*v_max < (i-1/2)*dx/t && (i-1/2)*dx/t < (1-2*p_R/p_max)*v_max
-              P_Exact(i) = 0.5*p_max*(1-(i-1/2)*dx/(v_max*t));
-          else
-              P_Exact(i) = p_R;
-          end
-        end
-    
-% Increment time
-t = t + dt;
+    % Calculate rhs in each cell
+    R = Q(2:Nx+1) - Q(1:Nx);
+    % Forward Euler step
+    P = P - (dt/dx)*R;
 
-% Plot current solution
-figure(1)
-clf
-plot(x,[P, P(Nx)],'mo');
-hold on;
-plot(x,[P_Exact, P_Exact(Nx)],'k-');
-axis([xL, xR, 0, 0.06]);
-legend('FVM','Exact');
-title(['t=',num2str(t)]);
-ylabel('density (1/m)');
-xlabel('distance (m)');
-grid on;
-drawnow;
-hold off;
+    %  %calculate exact solution at this time step
+    for i=1:length(P_Exact)
+      if (i-1/2)*dx/t <= (1-2*p_L/p_max)*v_max
+          P_Exact(i) = p_L;
+      elseif (1-2*p_L/p_max)*v_max < (i-1/2)*dx/t && (i-1/2)*dx/t < (1-2*p_R/p_max)*v_max
+          P_Exact(i) = 0.5*p_max*(1-(i-1/2)*dx/(v_max*t));
+      else
+          P_Exact(i) = p_R;
+      end
+    end
+
+    % Increment time
+    t = t + dt;
+
+    % Plot current solution
+    figure(1)
+    clf;
+    hold on;
+    grid on;
+    plot(x,[P, P(Nx)],'bo');
+    plot(x,[P_Exact, P_Exact(Nx)],'k-');
+        axis([xL, xR, 0, 0.06]);
+        legend('FVM','Exact');
+        title(['t=',num2str(t)]);
+        ylabel('density (1/m)');
+        xlabel('distance (m)');
+    drawnow;
+    
+    hold off;
 end
